@@ -27,23 +27,30 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 if(!id){
-  document.body.innerHTML = "<h2>No ID Found</h2>";
+  document.body.innerHTML="<h2>No ID Found</h2>";
   throw new Error("No ID");
 }
 
-const snapshot = await get(ref(db, "links/" + id));
+const snap = await get(ref(db,"links/"+id));
 
-if(snapshot.exists()){
+if(snap.exists()){
 
-  const data = snapshot.val();
-  const originalURL = data.original;
+  const originalURL = snap.val().original;
 
   const device = /mobile/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
   const today = new Date().toISOString().split("T")[0];
 
+  // 🔥 REAL LOCATION
+  let country = "Unknown";
+  try{
+    const res = await fetch("https://ipapi.co/json/");
+    const data = await res.json();
+    country = data.country_name;
+  }catch(e){}
+
   await push(ref(db,"clicks/"+id),{
     device:device,
-    country:"Unknown",
+    country:country,
     date:today,
     time:Date.now()
   });
@@ -51,7 +58,7 @@ if(snapshot.exists()){
   window.location.replace(originalURL);
 
 }else{
-  document.body.innerHTML = "<h2>Invalid Link</h2>";
+  document.body.innerHTML="<h2>Invalid Link</h2>";
 }
 
 </script>
