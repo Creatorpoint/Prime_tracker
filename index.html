@@ -12,10 +12,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  databaseURL: "YOUR_DB_URL",
-  projectId: "YOUR_PROJECT_ID"
+  apiKey: "AIzaSyAk7OeIvh-D7NC_QKkQNMria4GxL5fT2ws",
+  authDomain: "prime-f23e6.firebaseapp.com",
+  databaseURL: "https://prime-f23e6-default-rtdb.firebaseio.com/",
+  projectId: "prime-f23e6"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -25,26 +25,31 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 if(!id){
-  document.body.innerHTML="Invalid Link";
+  document.body.innerHTML = "Invalid Link";
 }else{
-  const snap = await get(ref(db,"links/"+id));
-  
-  if(snap.exists()){
-    const original = snap.val().original;
 
-    // Save click data
-    await push(ref(db,"clicks/"+id),{
+  const snapshot = await get(ref(db, "links/" + id));
+
+  if(snapshot.exists()){
+
+    const originalURL = snapshot.val().original;
+
+    // Save Click Data
+    await push(ref(db, "clicks/" + id), {
       date: new Date().toLocaleDateString(),
       timestamp: Date.now(),
       userAgent: navigator.userAgent
     });
 
-    window.location.href = original;
+    // Redirect
+    window.location.href = originalURL;
 
   }else{
-    document.body.innerHTML="Link Not Found";
+    document.body.innerHTML = "Link Not Found";
   }
+
 }
 </script>
+
 </body>
 </html>
