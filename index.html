@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>Loading...</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Redirecting...</title>
 </head>
 <body>
-Redirecting...
-
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
@@ -25,44 +24,44 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 if(!id){
-  document.body.innerHTML="Invalid Link";
+  document.body.innerHTML = "Invalid Link";
 }else{
 
-  const snap = await get(ref(db,"links/"+id));
+  try{
 
-  if(snap.exists()){
+    const response = await fetch("https://ipapi.co/json/");
+    const data = await response.json();
 
-    const originalURL = snap.val().original;
+    const deviceInfo = navigator.userAgent;
 
-    // 🔥 Fetch IP Data
-    let ipData = {};
-    try{
-      const res = await fetch("https://ipapi.co/json/");
-      ipData = await res.json();
-    }catch(e){
-      console.log("IP fetch failed");
-    }
+    const today = new Date().toISOString().split("T")[0];
 
-    // 🔥 Save FULL Click Data
     await push(ref(db,"clicks/"+id),{
-      timestamp: Date.now(),
-      date: new Date().toLocaleDateString(),
-      ip: ipData.ip || "Unknown",
-      city: ipData.city || "Unknown",
-      country: ipData.country_name || "Unknown",
-      region: ipData.region || "Unknown",
-      org: ipData.org || "Unknown",
-      timezone: ipData.timezone || "Unknown",
-      device: navigator.userAgent
+      ip: data.ip || "",
+      city: data.city || "",
+      country: data.country_name || "",
+      region: data.region || "",
+      org: data.org || "",
+      timezone: data.timezone || "",
+      device: deviceInfo,
+      date: today,
+      timestamp: Date.now()
     });
 
-    window.location.href = originalURL;
-
-  }else{
-    document.body.innerHTML="Link Not Found";
+  }catch(e){
+    console.log("IP Fetch Failed");
   }
-}
-</script>
 
+  const linkSnap = await get(ref(db,"links/"+id));
+
+  if(linkSnap.exists()){
+    window.location.href = linkSnap.val().original;
+  }else{
+    document.body.innerHTML = "Link Not Found";
+  }
+
+}
+
+</script>
 </body>
 </html>
