@@ -6,19 +6,18 @@
 </head>
 <body>
 
+<h2 style="text-align:center;margin-top:50px;">Redirecting...</h2>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, push, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAk7OeIvh-D7NC_QKkQNMria4GxL5fT2ws",
   authDomain: "prime-f23e6.firebaseapp.com",
   databaseURL: "https://prime-f23e6-default-rtdb.firebaseio.com/",
-  projectId: "prime-f23e6",
-  storageBucket: "prime-f23e6.firebasestorage.app",
-  messagingSenderId: "260013125631",
-  appId: "1:260013125631:web:5f1371b9d359b68b9181ca"
+  projectId: "prime-f23e6"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -28,10 +27,34 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 if(!id){
-  document.body.innerHTML = "Invalid Link";
+  document.body.innerHTML = "<h2>No ID Found</h2>";
   throw new Error("No ID");
 }
 
-async function track(){
+const snapshot = await get(ref(db, "links/" + id));
 
-  const linkSnap = await get(ref(db
+if(snapshot.exists()){
+
+  const data = snapshot.val();
+  const originalURL = data.original;
+
+  const device = /mobile/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+  const today = new Date().toISOString().split("T")[0];
+
+  await push(ref(db,"clicks/"+id),{
+    device:device,
+    country:"Unknown",
+    date:today,
+    time:Date.now()
+  });
+
+  window.location.replace(originalURL);
+
+}else{
+  document.body.innerHTML = "<h2>Invalid Link</h2>";
+}
+
+</script>
+
+</body>
+</html>
