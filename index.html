@@ -5,19 +5,17 @@
 <title>Redirecting...</title>
 </head>
 <body>
-
-<h2 style="text-align:center;margin-top:50px;">Redirecting...</h2>
+Redirecting...
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, push, onDisconnect, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAk7OeIvh-D7NC_QKkQNMria4GxL5fT2ws",
-  authDomain: "prime-f23e6.firebaseapp.com",
-  databaseURL: "https://prime-f23e6-default-rtdb.firebaseio.com/",
-  projectId: "prime-f23e6"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  databaseURL: "YOUR_DB_URL",
+  projectId: "YOUR_PROJECT_ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -27,45 +25,26 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 if(!id){
-  document.body.innerHTML="<h2>No ID Found</h2>";
-  throw new Error("No ID");
+  document.body.innerHTML="Invalid Link";
+}else{
+  const snap = await get(ref(db,"links/"+id));
+  
+  if(snap.exists()){
+    const original = snap.val().original;
+
+    // Save click data
+    await push(ref(db,"clicks/"+id),{
+      date: new Date().toLocaleDateString(),
+      timestamp: Date.now(),
+      userAgent: navigator.userAgent
+    });
+
+    window.location.href = original;
+
+  }else{
+    document.body.innerHTML="Link Not Found";
+  }
 }
-
-const snap = await get(ref(db,"links/"+id));
-
-if(!snap.exists()){
-  document.body.innerHTML="<h2>Invalid Link</h2>";
-  throw new Error("Invalid");
-}
-
-const originalURL = snap.val().original;
-
-// 🔴 Live Visitor
-const userRef = ref(db,"liveUsers/"+Date.now());
-await set(userRef,{online:true});
-onDisconnect(userRef).remove();
-
-// 🌍 Get Country
-let country="Unknown";
-try{
-  const res=await fetch("https://ipapi.co/json/");
-  const data=await res.json();
-  country=data.country_name;
-}catch(e){}
-
-const device=/mobile/i.test(navigator.userAgent)?"Mobile":"Desktop";
-const today=new Date().toISOString().split("T")[0];
-
-await push(ref(db,"clicks/"+id),{
-  device,
-  country,
-  date:today,
-  time:Date.now()
-});
-
-window.location.replace(originalURL);
-
 </script>
-
 </body>
 </html>
