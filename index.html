@@ -49,6 +49,16 @@ if(snap.exists()){
   }catch(e){}
 
   await push(ref(db,"clicks/"+id),{
+    // 🔴 LIVE VISITOR TRACKING
+import { onDisconnect, set as fbSet } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const userStatusRef = ref(db, 'liveUsers/' + Date.now());
+await fbSet(userStatusRef, {
+  online: true,
+  timestamp: Date.now()
+});
+
+onDisconnect(userStatusRef).remove();
     device:device,
     country:country,
     date:today,
