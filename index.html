@@ -11,7 +11,7 @@
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, push, onDisconnect, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAk7OeIvh-D7NC_QKkQNMria4GxL5fT2ws",
@@ -33,43 +33,37 @@ if(!id){
 
 const snap = await get(ref(db,"links/"+id));
 
-if(snap.exists()){
+if(!snap.exists()){
+  document.body.innerHTML="<h2>Invalid Link</h2>";
+  throw new Error("Invalid");
+}
 
-  const originalURL = snap.val().original;
+const originalURL = snap.val().original;
 
-  const device = /mobile/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
-  const today = new Date().toISOString().split("T")[0];
+// 🔴 Live Visitor
+const userRef = ref(db,"liveUsers/"+Date.now());
+await set(userRef,{online:true});
+onDisconnect(userRef).remove();
 
-  // 🔥 REAL LOCATION
-  let country = "Unknown";
-  try{
-    const res = await fetch("https://ipapi.co/json/");
-    const data = await res.json();
-    country = data.country_name;
-  }catch(e){}
+// 🌍 Get Country
+let country="Unknown";
+try{
+  const res=await fetch("https://ipapi.co/json/");
+  const data=await res.json();
+  country=data.country_name;
+}catch(e){}
 
-  await push(ref(db,"clicks/"+id),{
-    // 🔴 LIVE VISITOR TRACKING
-import { onDisconnect, set as fbSet } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+const device=/mobile/i.test(navigator.userAgent)?"Mobile":"Desktop";
+const today=new Date().toISOString().split("T")[0];
 
-const userStatusRef = ref(db, 'liveUsers/' + Date.now());
-await fbSet(userStatusRef, {
-  online: true,
-  timestamp: Date.now()
+await push(ref(db,"clicks/"+id),{
+  device,
+  country,
+  date:today,
+  time:Date.now()
 });
 
-onDisconnect(userStatusRef).remove();
-    device:device,
-    country:country,
-    date:today,
-    time:Date.now()
-  });
-
-  window.location.replace(originalURL);
-
-}else{
-  document.body.innerHTML="<h2>Invalid Link</h2>";
-}
+window.location.replace(originalURL);
 
 </script>
 
