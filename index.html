@@ -25,16 +25,16 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 if(!id){
-  document.body.innerHTML = "Invalid Link";
+  document.body.innerHTML="Invalid Link";
 }else{
 
-  const snapshot = await get(ref(db, "links/" + id));
+  const snap = await get(ref(db,"links/"+id));
 
-  if(snapshot.exists()){
+  if(snap.exists()){
 
-    const originalURL = snapshot.val().original;
+    const originalURL = snap.val().original;
 
-    // 🌍 Get Visitor Info
+    // 🔥 Fetch IP Data
     let ipData = {};
     try{
       const res = await fetch("https://ipapi.co/json/");
@@ -43,10 +43,10 @@ if(!id){
       console.log("IP fetch failed");
     }
 
-    // Save Click Data
-    await push(ref(db, "clicks/" + id), {
-      date: new Date().toLocaleDateString(),
+    // 🔥 Save FULL Click Data
+    await push(ref(db,"clicks/"+id),{
       timestamp: Date.now(),
+      date: new Date().toLocaleDateString(),
       ip: ipData.ip || "Unknown",
       city: ipData.city || "Unknown",
       country: ipData.country_name || "Unknown",
@@ -59,9 +59,10 @@ if(!id){
     window.location.href = originalURL;
 
   }else{
-    document.body.innerHTML = "Link Not Found";
+    document.body.innerHTML="Link Not Found";
   }
 }
 </script>
+
 </body>
 </html>
