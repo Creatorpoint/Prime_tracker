@@ -34,22 +34,34 @@ if(!id){
 
     const originalURL = snapshot.val().original;
 
+    // 🌍 Get Visitor Info
+    let ipData = {};
+    try{
+      const res = await fetch("https://ipapi.co/json/");
+      ipData = await res.json();
+    }catch(e){
+      console.log("IP fetch failed");
+    }
+
     // Save Click Data
     await push(ref(db, "clicks/" + id), {
       date: new Date().toLocaleDateString(),
       timestamp: Date.now(),
-      userAgent: navigator.userAgent
+      ip: ipData.ip || "Unknown",
+      city: ipData.city || "Unknown",
+      country: ipData.country_name || "Unknown",
+      region: ipData.region || "Unknown",
+      org: ipData.org || "Unknown",
+      timezone: ipData.timezone || "Unknown",
+      device: navigator.userAgent
     });
 
-    // Redirect
     window.location.href = originalURL;
 
   }else{
     document.body.innerHTML = "Link Not Found";
   }
-
 }
 </script>
-
 </body>
 </html>
